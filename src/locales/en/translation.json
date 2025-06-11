@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "title": "Driver Portal Login",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "dateOfBirth": "Date of Birth",
+    "accessCode": "Access Code",
+    "note": "Contact fleet manager if you forgot your code or if you had issues login in",
+    "errorMessages": {
+      "isRequired": "is required",
+      "invalid": "Invalid credentials",
+      "length": "Access code must be 8 characters long"
+    }
+  },
+  "common": {
+    "submit": "Submit",
+    "submitting": "Submitting..."
+  }
+}

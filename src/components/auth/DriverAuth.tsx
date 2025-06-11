@@ -6,6 +6,8 @@ import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {useNavigate} from 'react-router-dom';
 import axios from "axios";
 import {API} from "../../constants.ts";
+import LanguageSwitcher from '../common/LanguageSwitcher.tsx';
+import {useTranslation} from "react-i18next";
 
 interface FormData {
     first_name: string;
@@ -25,6 +27,7 @@ interface FormErrors {
 const DriverAuth: React.FC = () => {
     const navigate = useNavigate();
     const firstNameInputRef = useRef<HTMLInputElement>(null);
+    const {t} = useTranslation();
 
     const [formData, setFormData] = useState<FormData>({
         first_name: '',
@@ -79,25 +82,25 @@ const DriverAuth: React.FC = () => {
         let isValid = true;
 
         if (!formData.first_name.trim()) {
-            newErrors.first_name = 'First name is required';
+            newErrors.first_name = `${t('auth.firstName')} ${t('auth.errorMessages.isRequired')}`;
             isValid = false;
         }
 
         if (!formData.last_name.trim()) {
-            newErrors.last_name = 'Last name is required';
+            newErrors.last_name = `${t('auth.lastName')} ${t('auth.errorMessages.isRequired')}`;
             isValid = false;
         }
 
         if (!formData.date_of_birth) {
-            newErrors.date_of_birth = 'Date of birth is required';
+            newErrors.date_of_birth = `${t('auth.dateOfBirth')} ${t('auth.errorMessages.isRequired')}`;
             isValid = false;
         }
 
         if (!formData.access_code) {
-            newErrors.access_code = 'Access code is required';
+            newErrors.access_code = `${t('auth.accessCode')} ${t('auth.errorMessages.isRequired')}`;
             isValid = false;
         } else if (formData.access_code.length !== 8) {
-            newErrors.access_code = 'Access code must be 8 characters long';
+            newErrors.access_code = t('auth.errorMessages.length');
             isValid = false;
         }
 
@@ -147,9 +150,12 @@ const DriverAuth: React.FC = () => {
                     alignItems: 'center'
                 }}
             >
-                <Typography component="h1" variant="h5" sx={{mb: 3}}>
-                    DRIVER PORTAL LOGIN
-                </Typography>
+                <Box sx={{display: 'flex', justifyContent: 'flex-end', width: '100%', mb: 2}}>
+                    <LanguageSwitcher/>
+                </Box>
+
+
+                <Typography component="h1" variant="h5" sx={{mb: 3}}>{t('auth.title')}</Typography>
 
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{width: '100%'}}>
                     <TextField
@@ -157,7 +163,7 @@ const DriverAuth: React.FC = () => {
                         required
                         fullWidth
                         id="firstName"
-                        label="First Name"
+                        label={t('auth.firstName')}
                         name="first_name"
                         autoComplete="given-name"
                         value={formData.first_name}
@@ -173,7 +179,7 @@ const DriverAuth: React.FC = () => {
                         required
                         fullWidth
                         id="lastName"
-                        label="Last Name"
+                        label={t('auth.lastName')}
                         name="last_name"
                         autoComplete="family-name"
                         value={formData.last_name}
@@ -185,7 +191,7 @@ const DriverAuth: React.FC = () => {
 
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
-                            label="Date of Birth"
+                            label={t('auth.dateOfBirth')}
                             value={Date.parse(formData.date_of_birth) ? new Date(formData.date_of_birth) : null}
                             onChange={handleDateChange}
                             slotProps={{
@@ -206,7 +212,7 @@ const DriverAuth: React.FC = () => {
                         required
                         fullWidth
                         id="accessCode"
-                        label="Access Code"
+                        label={t('auth.accessCode')}
                         name="access_code"
                         value={formData.access_code}
                         onChange={handleInputChange}
@@ -241,11 +247,11 @@ const DriverAuth: React.FC = () => {
                         disabled={isSubmitting}
                         sx={{mt: 2, mb: 2}}
                     >
-                        {isSubmitting ? 'Submitting...' : 'Submit'}
+                        {isSubmitting ? t('common.submitting') : t('common.submit')}
                     </Button>
 
                     <Typography variant="body2" color="text.secondary" align="center">
-                        Contact fleet manager if you forgot your code
+                        {t('auth.note')}
                     </Typography>
                 </Box>
             </Paper>
