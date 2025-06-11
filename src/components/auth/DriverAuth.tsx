@@ -4,19 +4,21 @@ import {DatePicker} from '@mui/x-date-pickers/DatePicker';
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {useNavigate} from 'react-router-dom';
+import axios from "axios";
+import {API} from "../../constants.ts";
 
 interface FormData {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: Date | null;
-    accessCode: string;
+    first_name: string;
+    last_name: string;
+    date_of_birth: string;
+    access_code: string;
 }
 
 interface FormErrors {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    accessCode: string;
+    first_name: string;
+    last_name: string;
+    date_of_birth: string;
+    access_code: string;
     apiError: string;
 }
 
@@ -25,17 +27,17 @@ const DriverAuth: React.FC = () => {
     const firstNameInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState<FormData>({
-        firstName: '',
-        lastName: '',
-        dateOfBirth: null,
-        accessCode: ''
+        first_name: '',
+        last_name: '',
+        date_of_birth: '',
+        access_code: ''
     });
 
     const [errors, setErrors] = useState<FormErrors>({
-        firstName: '',
-        lastName: '',
-        dateOfBirth: '',
-        accessCode: '',
+        first_name: '',
+        last_name: '',
+        date_of_birth: '',
+        access_code: '',
         apiError: ''
     });
 
@@ -50,14 +52,7 @@ const DriverAuth: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
-
-        if (name === 'accessCode') {
-            // Only allow digits and limit to 6 characters
-            const numericValue = value.replace(/\D/g, '').slice(0, 6);
-            setFormData({...formData, [name]: numericValue});
-        } else {
-            setFormData({...formData, [name]: value});
-        }
+        setFormData({...formData, [name]: value});
 
         // Clear error when user types
         if (errors[name as keyof FormErrors]) {
@@ -66,43 +61,43 @@ const DriverAuth: React.FC = () => {
     };
 
     const handleDateChange = (date: Date | null) => {
-        setFormData({...formData, dateOfBirth: date});
-        if (errors.dateOfBirth) {
-            setErrors({...errors, dateOfBirth: ''});
+        setFormData({...formData, date_of_birth: date?.toISOString().split('T')[0] || ''});
+        if (errors.date_of_birth) {
+            setErrors({...errors, date_of_birth: ''});
         }
     };
 
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {
-            firstName: '',
-            lastName: '',
-            dateOfBirth: '',
-            accessCode: '',
+            first_name: '',
+            last_name: '',
+            date_of_birth: '',
+            access_code: '',
             apiError: ''
         };
 
         let isValid = true;
 
-        if (!formData.firstName.trim()) {
-            newErrors.firstName = 'First name is required';
+        if (!formData.first_name.trim()) {
+            newErrors.first_name = 'First name is required';
             isValid = false;
         }
 
-        if (!formData.lastName.trim()) {
-            newErrors.lastName = 'Last name is required';
+        if (!formData.last_name.trim()) {
+            newErrors.last_name = 'Last name is required';
             isValid = false;
         }
 
-        if (!formData.dateOfBirth) {
-            newErrors.dateOfBirth = 'Date of birth is required';
+        if (!formData.date_of_birth) {
+            newErrors.date_of_birth = 'Date of birth is required';
             isValid = false;
         }
 
-        if (!formData.accessCode) {
-            newErrors.accessCode = 'Access code is required';
+        if (!formData.access_code) {
+            newErrors.access_code = 'Access code is required';
             isValid = false;
-        } else if (formData.accessCode.length !== 6) {
-            newErrors.accessCode = 'Access code must be 6 digits';
+        } else if (formData.access_code.length !== 8) {
+            newErrors.access_code = 'Access code must be 8 characters long';
             isValid = false;
         }
 
@@ -122,35 +117,19 @@ const DriverAuth: React.FC = () => {
 
         try {
             // API call to authenticate driver
-            const response = await fetch('/api/driver/auth/', {
-                method: 'POST',
+            const response = await axios.post(`${API}drivers/login/`, formData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    dateOfBirth: formData.dateOfBirth,
-                    accessCode: formData.accessCode
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    setErrors({...errors, accessCode: 'Incorrect code, try again'});
-                } else {
-                    setErrors({...errors, apiError: data.message || 'Authentication failed'});
-                }
-                return;
-            }
+                withCredentials: true
+            })
+            console.log(response);
 
             // Redirect to dashboard on success
             navigate('/dashboard');
 
-        } catch (error) {
-            setErrors({...errors, apiError: 'Network error. Please try again.'});
+        } catch (error: any) {
+            setErrors({...errors, apiError: error.response.data.message});
         } finally {
             setIsSubmitting(false);
         }
@@ -179,12 +158,12 @@ const DriverAuth: React.FC = () => {
                         fullWidth
                         id="firstName"
                         label="First Name"
-                        name="firstName"
+                        name="first_name"
                         autoComplete="given-name"
-                        value={formData.firstName}
+                        value={formData.first_name}
                         onChange={handleInputChange}
-                        error={!!errors.firstName}
-                        helperText={errors.firstName}
+                        error={!!errors.first_name}
+                        helperText={errors.first_name}
                         inputRef={firstNameInputRef}
                         sx={{mb: 2}}
                     />
@@ -195,27 +174,27 @@ const DriverAuth: React.FC = () => {
                         fullWidth
                         id="lastName"
                         label="Last Name"
-                        name="lastName"
+                        name="last_name"
                         autoComplete="family-name"
-                        value={formData.lastName}
+                        value={formData.last_name}
                         onChange={handleInputChange}
-                        error={!!errors.lastName}
-                        helperText={errors.lastName}
+                        error={!!errors.last_name}
+                        helperText={errors.last_name}
                         sx={{mb: 2}}
                     />
 
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
                             label="Date of Birth"
-                            value={formData.dateOfBirth}
+                            value={Date.parse(formData.date_of_birth) ? new Date(formData.date_of_birth) : null}
                             onChange={handleDateChange}
                             slotProps={{
                                 textField: {
                                     required: true,
                                     fullWidth: true,
                                     margin: "normal",
-                                    error: !!errors.dateOfBirth,
-                                    helperText: errors.dateOfBirth
+                                    error: !!errors.date_of_birth,
+                                    helperText: errors.date_of_birth
                                 }
                             }}
                             sx={{mb: 2, width: '100%'}}
@@ -228,20 +207,20 @@ const DriverAuth: React.FC = () => {
                         fullWidth
                         id="accessCode"
                         label="Access Code"
-                        name="accessCode"
-                        value={formData.accessCode}
+                        name="access_code"
+                        value={formData.access_code}
                         onChange={handleInputChange}
-                        error={!!errors.accessCode}
-                        helperText={errors.accessCode}
+                        error={!!errors.access_code}
+                        helperText={errors.access_code}
                         inputProps={{
-                            maxLength: 6,
+                            maxLength: 8,
                             inputMode: 'numeric',
-                            pattern: '[0-9]*'
+                            pattern: '^[2-9A-HJ-NP-Z]{6}-[2-9A-HJ-NP-Z]{1}$'
                         }}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    {formData.accessCode.length}/6
+                                    {formData.access_code.length}/8
                                 </InputAdornment>
                             ),
                         }}
