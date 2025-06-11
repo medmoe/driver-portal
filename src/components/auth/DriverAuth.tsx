@@ -8,6 +8,7 @@ import axios from "axios";
 import {API} from "../../constants.ts";
 import LanguageSwitcher from '../common/LanguageSwitcher.tsx';
 import {useTranslation} from "react-i18next";
+import useAuthStore from "../../stores/useAuthStore.ts";
 
 interface FormData {
     first_name: string;
@@ -28,6 +29,7 @@ const DriverAuth: React.FC = () => {
     const navigate = useNavigate();
     const firstNameInputRef = useRef<HTMLInputElement>(null);
     const {t} = useTranslation();
+    const {setAuth} = useAuthStore();
 
     const [formData, setFormData] = useState<FormData>({
         first_name: '',
@@ -120,13 +122,21 @@ const DriverAuth: React.FC = () => {
 
         try {
             // API call to authenticate driver
-            const response = await axios.post(`${API}drivers/login/`, formData, {
+            await axios.post(`${API}drivers/login/`, formData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 withCredentials: true
             })
-            console.log(response);
+            setAuth({
+                isAuthenticated: true,
+                user: {
+                    firstName: formData.first_name,
+                    lastName: formData.last_name,
+                    dateOfBirth: formData.date_of_birth,
+                    accessCode: formData.access_code
+                }
+            })
 
             // Redirect to dashboard on success
             navigate('/dashboard');

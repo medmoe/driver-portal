@@ -10,6 +10,7 @@ import {CacheProvider} from '@emotion/react';
 import createCache from '@emotion/cache';
 import {useEffect} from 'react';
 import './App.css';
+import ProtectedRoute from "./components/common/ProtectedRoute.tsx";
 
 // Create rtl cache
 const cacheRtl = createCache({
@@ -84,7 +85,9 @@ function App() {
                     <Router future={{v7_startTransition: true}}>
                         <Routes>
                             <Route path="/" element={<DriverAuth/>}/>
-                            <Route path="/dashboard" element={<Dashboard/>}/>
+                            <Route element={<ProtectedRoute/>}>
+                                <Route path="/dashboard" element={<Dashboard/>}/>
+                            </Route>
                             <Route path="*" element={<Navigate to="/" replace/>}/>
                         </Routes>
                     </Router>
