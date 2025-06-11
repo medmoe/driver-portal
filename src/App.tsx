@@ -54,7 +54,7 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Router>
+                <Router future={{v7_startTransition: true}}>
                     <Routes>
                         <Route path="/" element={<DriverAuth/>}/>
                         <Route path="/dashboard" element={<Dashboard/>}/>
