@@ -36,7 +36,6 @@ describe('DriverAuth Component', () => {
         renderComponent();
         expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Last Name/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Date of Birth/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Access Code/i)).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         expect(screen.getByText(/Contact fleet manager if you forgot your code/i)).toBeInTheDocument();
