@@ -2,13 +2,14 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Box, Button, Container, FormHelperText, InputAdornment, Paper, TextField, Typography} from '@mui/material';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
-import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {useNavigate} from 'react-router-dom';
 import axios from "axios";
 import {API} from "../../constants.ts";
 import LanguageSwitcher from '../common/LanguageSwitcher.tsx';
 import {useTranslation} from "react-i18next";
 import useAuthStore from "../../stores/useAuthStore.ts";
+import {format} from 'date-fns'
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 
 interface FormData {
     first_name: string;
@@ -38,6 +39,8 @@ const DriverAuth: React.FC = () => {
         access_code: ''
     });
 
+    const [date, setDate] = useState<Date | null>(null);
+
     const [errors, setErrors] = useState<FormErrors>({
         first_name: '',
         last_name: '',
@@ -66,7 +69,7 @@ const DriverAuth: React.FC = () => {
     };
 
     const handleDateChange = (date: Date | null) => {
-        setFormData({...formData, date_of_birth: date?.toISOString().split('T')[0] || ''});
+        setDate(date);
         if (errors.date_of_birth) {
             setErrors({...errors, date_of_birth: ''});
         }
@@ -93,7 +96,7 @@ const DriverAuth: React.FC = () => {
             isValid = false;
         }
 
-        if (!formData.date_of_birth) {
+        if (!date) {
             newErrors.date_of_birth = `${t('auth.dateOfBirth')} ${t('auth.errorMessages.isRequired')}`;
             isValid = false;
         }
@@ -112,8 +115,7 @@ const DriverAuth: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!validateForm()) {
+        if (!validateForm() || !date) {
             return;
         }
 
@@ -122,7 +124,8 @@ const DriverAuth: React.FC = () => {
 
         try {
             // API call to authenticate driver
-            await axios.post(`${API}drivers/login/`, formData, {
+            const formattedDate = format(date, 'yyyy-MM-dd')
+            await axios.post(`${API}drivers/login/`, {...formData, date_of_birth: formattedDate}, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -133,7 +136,7 @@ const DriverAuth: React.FC = () => {
                 user: {
                     firstName: formData.first_name,
                     lastName: formData.last_name,
-                    dateOfBirth: formData.date_of_birth,
+                    dateOfBirth: formattedDate,
                     accessCode: formData.access_code
                 }
             })
@@ -142,6 +145,7 @@ const DriverAuth: React.FC = () => {
             navigate('/dashboard');
 
         } catch (error: any) {
+            console.log(error)
             setErrors({...errors, apiError: error.response.data.message});
         } finally {
             setIsSubmitting(false);
@@ -202,8 +206,9 @@ const DriverAuth: React.FC = () => {
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
                             label={t('auth.dateOfBirth')}
-                            value={Date.parse(formData.date_of_birth) ? new Date(formData.date_of_birth) : null}
+                            value={date}
                             onChange={handleDateChange}
+                            data-testid="date-of-birth-picker"
                             slotProps={{
                                 textField: {
                                     required: true,
@@ -214,6 +219,7 @@ const DriverAuth: React.FC = () => {
                                 }
                             }}
                             sx={{mb: 2, width: '100%'}}
+                            timezone={'UTC'}
                         />
                     </LocalizationProvider>
 
@@ -228,17 +234,19 @@ const DriverAuth: React.FC = () => {
                         onChange={handleInputChange}
                         error={!!errors.access_code}
                         helperText={errors.access_code}
-                        inputProps={{
-                            maxLength: 8,
-                            inputMode: 'numeric',
-                            pattern: '^[2-9A-HJ-NP-Z]{6}-[2-9A-HJ-NP-Z]{1}$'
-                        }}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    {formData.access_code.length}/8
-                                </InputAdornment>
-                            ),
+                        slotProps={{
+                            htmlInput: {
+                                maxLength: 8,
+                                inputMode: 'numeric',
+                                pattern: '^[2-9A-HJ-NP-Z]{6}-[2-9A-HJ-NP-Z]{1}$'
+                            },
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        {formData.access_code.length}/8
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                         sx={{mb: 2}}
                     />
