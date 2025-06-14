@@ -148,6 +148,7 @@ const Dashboard: React.FC = () => {
                     <List>
                         <ListItem
                             component={'button'}
+                            onClick={() => navigate('/daily-status')}
                             sx={{
                                 border: '1px solid rgba(0, 0, 0, 0.12)',
                                 borderRadius: 1,
