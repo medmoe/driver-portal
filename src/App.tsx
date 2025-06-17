@@ -4,7 +4,6 @@ import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import DriverAuth from './components/auth/DriverAuth';
 import Dashboard from './components/dashboard/Dashboard';
-import DailyStatusForm from './components/forms/DailyStatusForm';
 import {useTranslation} from 'react-i18next';
 import rtlPlugin from 'stylis-plugin-rtl';
 import {CacheProvider} from '@emotion/react';
@@ -83,12 +82,11 @@ function App() {
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Router future={{v7_startTransition: true}}>
+                    <Router future={{v7_startTransition: true, v7_relativeSplatPath: true}}>
                         <Routes>
                             <Route path="/" element={<DriverAuth/>}/>
                             <Route element={<ProtectedRoute/>}>
                                 <Route path="/dashboard" element={<Dashboard/>}/>
-                                <Route path="/daily-status" element={<DailyStatusForm/>}/>
                             </Route>
                             <Route path="*" element={<Navigate to="/" replace/>}/>
                         </Routes>
