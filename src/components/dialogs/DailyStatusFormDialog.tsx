@@ -28,6 +28,7 @@ interface DailyStatusFormDialogProps {
     onSubmitSuccess?: () => void;
     setFormListResponse: (formData: FormListResponse) => void
     formListResponse: FormListResponse
+    selectedDate: string
 }
 
 const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
@@ -36,6 +37,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                                                          onSubmitSuccess,
                                                                          setFormListResponse,
                                                                          formListResponse,
+                                                                         selectedDate,
                                                                      }: DailyStatusFormDialogProps) => {
     const [submitting, setSubmitting] = useState(false);
     const [deliveryArea, setDeliveryArea] = useState<string>('');
@@ -51,7 +53,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
     // Form state
     const [formData, setFormData] = useState<FormData>({
-        date: format(new Date(), 'yyyy-MM-dd'),
+        date: selectedDate,
         time: format(new Date(), 'HH:mm:ss'),
         deliveryAreas: [],
         status: "true",
@@ -88,7 +90,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     } else {
                         // Reset form if draft is not from today
                         setFormData({
-                            date: format(now, 'yyyy-MM-dd'),
+                            date: selectedDate,
                             time: format(now, 'HH:mm:ss'),
                             deliveryAreas: [],
                             status: "true",
@@ -105,12 +107,12 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                 // If no draft, set the current date and time
                 setFormData(prevState => ({
                     ...prevState,
-                    date: format(now, 'yyyy-MM-dd'),
+                    date: selectedDate,
                     time: format(now, 'HH:mm:ss')
                 }));
             }
         }
-    }, [open]);
+    }, [open, selectedDate]);
 
     // Auto-save draft to localStorage every 30 seconds
     useEffect(() => {

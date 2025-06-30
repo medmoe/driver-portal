@@ -2,8 +2,8 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen, waitFor} from '../../__test__/test-utils.tsx';
 import {BrowserRouter, useNavigate} from 'react-router-dom';
 import '@testing-library/jest-dom';
-import Dashboard from './Dashboard';
 import useAuthStore from '../../stores/useAuthStore';
+import Dashboard from "./SubmittedForms.tsx";
 
 declare const global: { Date: typeof Date };
 // Mock dependencies

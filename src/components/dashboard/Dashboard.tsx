@@ -7,10 +7,6 @@ import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Divider from '@mui/material/Divider';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Pagination from '@mui/material/Pagination';
@@ -23,11 +19,12 @@ import {useNavigate} from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore';
 import Notifications from '@mui/icons-material/Notifications';
 import Assignment from '@mui/icons-material/Assignment';
-import CheckCircle from '@mui/icons-material/CheckCircle';
 import axios from "axios";
 import {API} from "../../constants.ts";
 import type {FormListResponse} from "../../types";
 import DailyStatusFormDialog from "../dialogs/DailyStatusFormDialog.tsx";
+import {format} from 'date-fns';
+import DailyFormsTodoList from "../common/DailyFormsTodoList.tsx";
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -62,26 +59,27 @@ const Dashboard: React.FC = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
-    const [formData, setFormData] = useState<FormListResponse>({
+    const [formListResponse, setFormListResponse] = useState<FormListResponse>({
         count: '0',
         next: null,
         previous: null,
         results: []
     });
     const [openFormDialog, setOpenFormDialog] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<string>('');
 
     // Calculate total pages based on count
     const pageSize = 20; // Assuming 10 items per page
-    const totalPages = Math.ceil(+formData.count / pageSize);
+    const totalPages = Math.ceil(+formListResponse.count / pageSize);
 
     // fetch submitted forms
     useEffect(() => {
         const fetchSubmittedForms = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
                 const options = {headers: {'Content-Type': 'application/json'}, withCredentials: true};
                 const response = await axios.get(`${API}drivers/starting-shift/?page=${page}`, options);
-                setFormData(response.data);
+                setFormListResponse(response.data);
                 console.log(response.data);
             } catch (error) {
                 console.error('Error fetching submitted forms:', error);
@@ -185,39 +183,19 @@ const Dashboard: React.FC = () => {
 
                 {/* Forms Tab Content */}
                 <TabPanel value={tabValue} index={1}>
+                    {/* TO-DO Section */}
                     <Typography variant="h6" sx={{mb: 2}}>TO-DO:</Typography>
-                    <List>
-                        <ListItem
-                            component={'button'}
-                            onClick={() => setOpenFormDialog(true)}
-                            sx={{
-                                border: '1px solid rgba(0, 0, 0, 0.12)',
-                                borderRadius: 1,
-                                mb: 2
-                            }}
-                        >
-                            <ListItemIcon>
-                                <CheckCircle color="success"/>
-                            </ListItemIcon>
-                            <ListItemText
-                                primary="Daily Status Form"
-                                secondary={
-                                    isDuePassed()
-                                        ? "Due: Today 9:00 AM (Late)"
-                                        : "Due: Today 9:00 AM"
-                                }
-                                slotProps={{
-                                    primary: {
-                                        fontWeight: 'medium'
-                                    },
-                                    secondary: {
-                                        color: isDuePassed() ? 'error' : 'text.secondary'
-                                    }
-                                }}
-                            />
-                        </ListItem>
-                    </List>
-                    <DailyStatusFormDialog open={openFormDialog} onClose={() => setOpenFormDialog(false)} setFormListResponse={setFormData} formListResponse={formData}/>
+                    <DailyFormsTodoList formListResponse={formListResponse}
+                                        isDuePassed={isDuePassed}
+                                        setOpenFormDialog={setOpenFormDialog}
+                                        setSelectedDate={setSelectedDate}
+                    />
+                    <DailyStatusFormDialog open={openFormDialog}
+                                           onClose={() => setOpenFormDialog(false)}
+                                           setFormListResponse={setFormListResponse}
+                                           formListResponse={formListResponse}
+                                           selectedDate={selectedDate}
+                    />
 
                     <Typography variant="h6" sx={{mt: 4, mb: 2}}>SUBMITTED FORMS:</Typography>
 
@@ -225,10 +203,10 @@ const Dashboard: React.FC = () => {
                         <Box sx={{display: 'flex', justifyContent: 'center', my: 4}}>
                             <CircularProgress/>
                         </Box>
-                    ) : formData.results.length > 0 ? (
+                    ) : formListResponse.results.length > 0 ? (
                         <>
                             <Grid container spacing={2}>
-                                {formData.results.map((form) => (
+                                {formListResponse.results.map((form) => (
                                     <Grid
                                         key={form.id}
                                         sx={{
@@ -242,7 +220,7 @@ const Dashboard: React.FC = () => {
                                         <Card variant="outlined" sx={{height: '100%'}}>
                                             <CardContent>
                                                 <Typography variant="h6" component="div" gutterBottom>
-                                                    {form.date}
+                                                    {format(new Date(form.date), 'MMM d, yyyy')}
                                                 </Typography>
                                                 <Typography color="text.secondary" sx={{mb: 1.5}}>
                                                     {form.time}
@@ -255,11 +233,11 @@ const Dashboard: React.FC = () => {
                                                     </Typography>
                                                     <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
                                                         <span>Load:</span>
-                                                        <span>{form.load} kg</span>
+                                                        <span>{Number(form.load).toLocaleString()} kg</span>
                                                     </Typography>
                                                     <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
                                                         <span>Mileage:</span>
-                                                        <span>{form.mileage} km</span>
+                                                        <span>{Number(form.mileage).toLocaleString()} km</span>
                                                     </Typography>
                                                 </Box>
                                             </CardContent>

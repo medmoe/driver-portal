@@ -3,14 +3,14 @@ import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import DriverAuth from './components/auth/DriverAuth';
-import Dashboard from './components/dashboard/Dashboard';
 import {useTranslation} from 'react-i18next';
 import rtlPlugin from 'stylis-plugin-rtl';
 import {CacheProvider} from '@emotion/react';
 import createCache from '@emotion/cache';
 import {useEffect} from 'react';
 import './App.css';
-import ProtectedRoute from "./components/common/ProtectedRoute.tsx";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import Dashboard from "./components/dashboard/Dashboard";
 
 // Create rtl cache
 const cacheRtl = createCache({
