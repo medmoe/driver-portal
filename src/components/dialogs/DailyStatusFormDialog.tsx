@@ -21,6 +21,7 @@ import {API} from "../../constants.ts";
 import {format} from 'date-fns';
 import NotificationBar from "../common/NotificationBar.tsx";
 import {type FormData, type FormListResponse} from "../../types.ts";
+import {useTranslation} from 'react-i18next';
 
 interface DailyStatusFormDialogProps {
     open: boolean;
@@ -39,6 +40,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                                                          formListResponse,
                                                                          selectedDate,
                                                                      }: DailyStatusFormDialogProps) => {
+    const {t} = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const [deliveryArea, setDeliveryArea] = useState<string>('');
     const [snackBar, setSnackBar] = useState<{
@@ -135,23 +137,23 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
         if (formData.status === "false") {
             if (!formData.absenceReason) {
-                newErrors.absenceReason = 'Please select a reason for absence';
+                newErrors.absenceReason = t('dialog.dailyStatusForm.absenceReason.reasonRequired');
             }
 
             if (formData.absenceReason === 'Other' && !formData.otherReason.trim()) {
-                newErrors.otherReason = 'Please specify the reason';
+                newErrors.otherReason = t('dialog.dailyStatusForm.absenceReason.otherReasonRequired');
             }
         }
         if (!formData.load || !/^\d+$/.test(formData.load)) {
-            newErrors.load = 'Please enter a valid load';
+            newErrors.load = t('dialog.dailyStatusForm.vehicleStatistics.loadError');
         }
         if (!formData.mileage || !/^\d+$/.test(formData.mileage)) {
-            newErrors.mileage = 'Please enter a valid mileage';
+            newErrors.mileage = t('dialog.dailyStatusForm.vehicleStatistics.mileageError');
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [formData]);
+    }, [formData, t]);
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
@@ -169,7 +171,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
             const {count, results, ...rest} = formListResponse;
             setFormListResponse({...rest, count: `${+count + 1}`, results: [...results, response.data]});
             localStorage.removeItem('dailyStatusFormDraft');
-            setSnackBar({open: true, severity: "success", message: "Daily status form submitted successfully"});
+            setSnackBar({open: true, severity: "success", message: t('dialog.dailyStatusForm.notifications.success')});
 
             // Call the onSubmitSuccess callback if provided
             if (onSubmitSuccess) {
@@ -182,10 +184,10 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
             }, 1000);
         } catch (error: any) {
             if (error.response?.status === 401) {
-                setSnackBar({open: true, severity: "error", message: "You are not logged in. Please log in to submit the form."});
+                setSnackBar({open: true, severity: "error", message: t('dialog.dailyStatusForm.notifications.loginError')});
             } else {
                 console.error('Error submitting form:', error);
-                setSnackBar({open: true, severity: "error", message: "Failed to submit form. Please try again."});
+                setSnackBar({open: true, severity: "error", message: t('dialog.dailyStatusForm.notifications.submitError')});
             }
         } finally {
             setSubmitting(false);
@@ -224,7 +226,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
             fullWidth
             maxWidth="sm"
         >
-            <DialogTitle align="center">Daily Status Form</DialogTitle>
+            <DialogTitle align="center">{t('dialog.dailyStatusForm.title')}</DialogTitle>
 
             <DialogContent>
                 <Box component="form" noValidate sx={{mt: 2}}>
@@ -232,7 +234,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     <Box sx={{display: 'flex', gap: 2, mb: 3}}>
                         <TextField
                             fullWidth
-                            label="Date"
+                            label={t('dialog.dailyStatusForm.date')}
                             value={formData.date}
                             slotProps={{
                                 input: {
@@ -242,7 +244,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                         />
                         <TextField
                             fullWidth
-                            label="Time"
+                            label={t('dialog.dailyStatusForm.time')}
                             value={formData.time}
                             slotProps={{
                                 input: {
@@ -254,12 +256,12 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
                     {/* Vehicle Statistics Section */}
                     <FormControl component="fieldset" sx={{mb: 3, width: '100%'}}>
-                        <FormLabel component="legend">🚚 Vehicle Statistics</FormLabel>
+                        <FormLabel component="legend">{t('dialog.dailyStatusForm.vehicleStatistics.title')}</FormLabel>
                         <Box sx={{display: 'flex', gap: 2, mt: 1}}>
                             <TextField
                                 required
                                 fullWidth
-                                label="Load (kg)"
+                                label={t('dialog.dailyStatusForm.vehicleStatistics.load')}
                                 type="number"
                                 slotProps={{
                                     input: {
@@ -279,7 +281,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                             <TextField
                                 required
                                 fullWidth
-                                label="Mileage (km)"
+                                label={t('dialog.dailyStatusForm.vehicleStatistics.mileage')}
                                 type="number"
                                 slotProps={{
                                     input: {
@@ -305,14 +307,14 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                         sx={{mb: 3, width: '100%'}}
                         error={!!errors.deliveryAreas}
                     >
-                        <FormLabel component="legend" sx={{mb: 2}}>📍 Delivery Areas Covered</FormLabel>
+                        <FormLabel component="legend" sx={{mb: 2}}>{t('dialog.dailyStatusForm.deliveryAreas.title')}</FormLabel>
                         <Box>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                 <TextField
                                     fullWidth
-                                    label={"Add delivery area"}
+                                    label={t('dialog.dailyStatusForm.deliveryAreas.addDeliveryArea')}
                                     value={deliveryArea}
-                                    placeholder="Type and press Enter to add delivery area"
+                                    placeholder={t('dialog.dailyStatusForm.deliveryAreas.placeholder')}
                                     onChange={(e) => setDeliveryArea(e.target.value)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
@@ -342,7 +344,9 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                             setDeliveryArea('');
                                         }
                                     }}
-                                >Add</Button>
+                                >
+                                    {t('dialog.dailyStatusForm.deliveryAreas.addButton')}
+                                </Button>
                             </Box>
                             <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}>
                                 {formData.deliveryAreas.map((area, idx) => (
@@ -365,7 +369,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
                     {/* Driver Status Section */}
                     <FormControl component="fieldset" sx={{mb: 3, width: '100%'}}>
-                        <FormLabel component="legend">🚦 Driver Status</FormLabel>
+                        <FormLabel component="legend">{t('dialog.dailyStatusForm.driverStatus.title')}</FormLabel>
                         <RadioGroup
                             value={formData.status}
                             onChange={handleDriverStatusChange}
@@ -373,12 +377,12 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                             <FormControlLabel
                                 value="true"
                                 control={<Radio/>}
-                                label="Active"
+                                label={t('dialog.dailyStatusForm.driverStatus.active')}
                             />
                             <FormControlLabel
                                 value="false"
                                 control={<Radio/>}
-                                label="Absent"
+                                label={t('dialog.dailyStatusForm.driverStatus.absent')}
                             />
                         </RadioGroup>
                     </FormControl>
@@ -391,15 +395,15 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                 error={!!errors.absenceReason}
                                 sx={{mb: errors.absenceReason ? 0 : 2}}
                             >
-                                <FormLabel component="legend">Reason for Absence</FormLabel>
+                                <FormLabel component="legend">{t('dialog.dailyStatusForm.absenceReason.title')}</FormLabel>
                                 <Select
                                     value={formData.absenceReason}
                                     onChange={handleAbsenceReasonChange}
                                     displayEmpty
                                 >
-                                    <MenuItem value="Maintenance">Maintenance</MenuItem>
-                                    <MenuItem value="Sickness">Sickness</MenuItem>
-                                    <MenuItem value="Other">Other</MenuItem>
+                                    <MenuItem value="Maintenance">{t('dialog.dailyStatusForm.absenceReason.maintenance')}</MenuItem>
+                                    <MenuItem value="Sickness">{t('dialog.dailyStatusForm.absenceReason.sickness')}</MenuItem>
+                                    <MenuItem value="Other">{t('dialog.dailyStatusForm.absenceReason.other')}</MenuItem>
                                 </Select>
                                 {errors.absenceReason && (
                                     <FormHelperText>{errors.absenceReason}</FormHelperText>
@@ -410,7 +414,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                             {formData.absenceReason === 'Other' && (
                                 <TextField
                                     fullWidth
-                                    label="Please specify"
+                                    label={t('dialog.dailyStatusForm.absenceReason.pleaseSpecify')}
                                     value={formData.otherReason}
                                     onChange={handleOtherReasonChange}
                                     error={!!errors.otherReason}
@@ -429,7 +433,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     onClick={onClose}
                     disabled={submitting}
                 >
-                    Cancel
+                    {t('dialog.dailyStatusForm.buttons.cancel')}
                 </Button>
                 <Button
                     variant="contained"
@@ -438,7 +442,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     startIcon={submitting ? <CircularProgress size={20}/> : null}
                     onClick={handleSubmit}
                 >
-                    {submitting ? 'Submitting...' : 'Submit'}
+                    {submitting ? t('dialog.dailyStatusForm.buttons.submitting') : t('dialog.dailyStatusForm.buttons.submit')}
                 </Button>
             </DialogActions>
 

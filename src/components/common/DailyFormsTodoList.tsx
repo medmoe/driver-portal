@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import React, {useMemo} from 'react';
+import {format, parseISO} from 'date-fns';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -7,7 +7,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import CheckCircle from '@mui/icons-material/CheckCircle';
-import { type FormListResponse } from '../../types';
+import {type FormListResponse} from '../../types';
+import {useTranslation} from 'react-i18next';
 
 interface DailyFormsTodoListProps {
     formListResponse: FormListResponse;
@@ -17,11 +18,12 @@ interface DailyFormsTodoListProps {
 }
 
 const DailyFormsTodoList: React.FC<DailyFormsTodoListProps> = ({
-    formListResponse,
-    isDuePassed,
-    setOpenFormDialog,
-    setSelectedDate,
-}) => {
+                                                                   formListResponse,
+                                                                   isDuePassed,
+                                                                   setOpenFormDialog,
+                                                                   setSelectedDate,
+                                                               }) => {
+    const {t} = useTranslation();
     const today = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
 
@@ -43,7 +45,7 @@ const DailyFormsTodoList: React.FC<DailyFormsTodoListProps> = ({
                 color: 'success.contrastText'
             }}>
                 <Typography variant="body1">
-                    ✅ You've completed all your forms. Great job!
+                    {t('dashboard.forms.todoList.allCompleted')}
                 </Typography>
             </Box>
         );
@@ -87,15 +89,18 @@ const DailyFormsTodoList: React.FC<DailyFormsTodoListProps> = ({
                             fontWeight: 'bold'
                         }}
                     >
-                        LATE
+                        {t('dashboard.forms.todoList.lateLabel')}
                     </Box>
                 )}
                 <ListItemIcon>
-                    <CheckCircle color={isDuePassed() ? "error" : "success"} />
+                    <CheckCircle color={isDuePassed() ? "error" : "success"}/>
                 </ListItemIcon>
                 <ListItemText
-                    primary="Daily Status Form"
-                    secondary={isDuePassed() ? "Due: Today 9:00 AM (Late)" : "Due: Today 9:00 AM"}
+                    primary={t('dashboard.forms.todoList.dailyStatusForm')}
+                    secondary={isDuePassed()
+                        ? t('dashboard.forms.todoList.dueTodayLate')
+                        : t('dashboard.forms.todoList.dueToday')
+                    }
                     slotProps={{
                         primary: {
                             fontWeight: 'medium'

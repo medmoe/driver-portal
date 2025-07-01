@@ -16,6 +16,7 @@ import CardActions from '@mui/material/CardActions';
 import Edit from '@mui/icons-material/Edit';
 import Visibility from '@mui/icons-material/Visibility';
 import {useNavigate} from 'react-router-dom';
+import {useTranslation} from 'react-i18next';
 import useAuthStore from '../../stores/useAuthStore';
 import Notifications from '@mui/icons-material/Notifications';
 import Assignment from '@mui/icons-material/Assignment';
@@ -25,6 +26,7 @@ import type {FormListResponse} from "../../types";
 import DailyStatusFormDialog from "../dialogs/DailyStatusFormDialog.tsx";
 import {format} from 'date-fns';
 import DailyFormsTodoList from "../common/DailyFormsTodoList.tsx";
+import LanguageSwitcher from "../common/LanguageSwitcher.tsx";
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -53,6 +55,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const Dashboard: React.FC = () => {
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const {auth} = useAuthStore();
     const [tabValue, setTabValue] = useState(1); // Default to Forms tab (index 1)
@@ -133,16 +136,18 @@ const Dashboard: React.FC = () => {
                 {/* Header with greeting and logout button */}
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
                     <Typography variant="h5">
-                        Hi, {auth.user?.firstName}!
+                        {t('dashboard.greeting', {firstName: auth.user?.firstName})}
                     </Typography>
+                    <LanguageSwitcher/>
                     <Button
                         variant="contained"
                         color="primary"
                         onClick={handleLogout}
                         size="small"
                     >
-                        Logout
+                        {t('dashboard.logout')}
                     </Button>
+
                 </Box>
 
                 <Divider sx={{mb: 2}}/>
@@ -157,14 +162,14 @@ const Dashboard: React.FC = () => {
                     <Tab
                         icon={<Notifications/>}
                         iconPosition="start"
-                        label="Notifications"
+                        label={t('dashboard.tabs.notifications')}
                         id="tab-0"
                         aria-controls="tabpanel-0"
                     />
                     <Tab
                         icon={<Assignment/>}
                         iconPosition="start"
-                        label="Forms"
+                        label={t('dashboard.tabs.forms')}
                         id="tab-1"
                         aria-controls="tabpanel-1"
                     />
@@ -175,7 +180,7 @@ const Dashboard: React.FC = () => {
                     <Card variant="outlined">
                         <CardContent>
                             <Typography variant="body1" color="text.secondary" sx={{fontStyle: 'italic'}}>
-                                No new notifications at this time. System alerts will appear here.
+                                {t('dashboard.notifications.noNotifications')}
                             </Typography>
                         </CardContent>
                     </Card>
@@ -184,20 +189,22 @@ const Dashboard: React.FC = () => {
                 {/* Forms Tab Content */}
                 <TabPanel value={tabValue} index={1}>
                     {/* TO-DO Section */}
-                    <Typography variant="h6" sx={{mb: 2}}>TO-DO:</Typography>
-                    <DailyFormsTodoList formListResponse={formListResponse}
-                                        isDuePassed={isDuePassed}
-                                        setOpenFormDialog={setOpenFormDialog}
-                                        setSelectedDate={setSelectedDate}
+                    <Typography variant="h6" sx={{mb: 2}}>{t('dashboard.forms.todo')}</Typography>
+                    <DailyFormsTodoList
+                        formListResponse={formListResponse}
+                        isDuePassed={isDuePassed}
+                        setOpenFormDialog={setOpenFormDialog}
+                        setSelectedDate={setSelectedDate}
                     />
-                    <DailyStatusFormDialog open={openFormDialog}
-                                           onClose={() => setOpenFormDialog(false)}
-                                           setFormListResponse={setFormListResponse}
-                                           formListResponse={formListResponse}
-                                           selectedDate={selectedDate}
+                    <DailyStatusFormDialog
+                        open={openFormDialog}
+                        onClose={() => setOpenFormDialog(false)}
+                        setFormListResponse={setFormListResponse}
+                        formListResponse={formListResponse}
+                        selectedDate={selectedDate}
                     />
 
-                    <Typography variant="h6" sx={{mt: 4, mb: 2}}>SUBMITTED FORMS:</Typography>
+                    <Typography variant="h6" sx={{mt: 4, mb: 2}}>{t('dashboard.forms.submittedForms')}</Typography>
 
                     {loading ? (
                         <Box sx={{display: 'flex', justifyContent: 'center', my: 4}}>
@@ -228,16 +235,16 @@ const Dashboard: React.FC = () => {
                                                 <Divider sx={{my: 1}}/>
                                                 <Box sx={{mt: 1}}>
                                                     <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
-                                                        <span>Status:</span>
-                                                        <span>{form.status ? 'Active' : 'Absent'}</span>
+                                                        <span>{t('dashboard.forms.formCard.status')}</span>
+                                                        <span>{form.status ? t('dashboard.forms.formCard.active') : t('dashboard.forms.formCard.absent')}</span>
                                                     </Typography>
                                                     <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
-                                                        <span>Load:</span>
-                                                        <span>{Number(form.load).toLocaleString()} kg</span>
+                                                        <span>{t('dashboard.forms.formCard.load')}</span>
+                                                        <span>{Number(form.load).toLocaleString()} {t('dashboard.forms.formCard.loadUnit')}</span>
                                                     </Typography>
                                                     <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
-                                                        <span>Mileage:</span>
-                                                        <span>{Number(form.mileage).toLocaleString()} km</span>
+                                                        <span>{t('dashboard.forms.formCard.mileage')}</span>
+                                                        <span>{Number(form.mileage).toLocaleString()} {t('dashboard.forms.formCard.mileageUnit')}</span>
                                                     </Typography>
                                                 </Box>
                                             </CardContent>
@@ -247,14 +254,14 @@ const Dashboard: React.FC = () => {
                                                     startIcon={<Visibility/>}
                                                     onClick={() => navigate(`/daily-status/view/${form.id}`)}
                                                 >
-                                                    View
+                                                    {t('dashboard.forms.formCard.viewButton')}
                                                 </Button>
                                                 <Button
                                                     size="small"
                                                     startIcon={<Edit/>}
                                                     onClick={() => navigate(`/daily-status/edit/${form.id}`)}
                                                 >
-                                                    Edit
+                                                    {t('dashboard.forms.formCard.editButton')}
                                                 </Button>
                                             </CardActions>
                                         </Card>
@@ -275,7 +282,7 @@ const Dashboard: React.FC = () => {
                         <Card variant="outlined">
                             <CardContent>
                                 <Typography variant="body1" color="text.secondary" sx={{fontStyle: 'italic'}}>
-                                    No submitted forms found. Your completed forms will appear here.
+                                    {t('dashboard.forms.noSubmittedForms')}
                                 </Typography>
                             </CardContent>
                         </Card>
