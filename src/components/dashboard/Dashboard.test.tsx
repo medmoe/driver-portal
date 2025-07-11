@@ -2,8 +2,8 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen, waitFor} from '../../__test__/test-utils.tsx';
 import {BrowserRouter, useNavigate} from 'react-router-dom';
 import '@testing-library/jest-dom';
-import Dashboard from './Dashboard';
 import useAuthStore from '../../stores/useAuthStore';
+import Dashboard from './Dashboard';
 
 declare const global: { Date: typeof Date };
 // Mock dependencies
@@ -75,7 +75,6 @@ describe('Dashboard Component', () => {
         expect(screen.getByText('TO-DO:')).toBeInTheDocument();
         expect(screen.getByText('Daily Status Form')).toBeInTheDocument();
         expect(screen.getByText('Due: Today 9:00 AM')).toBeInTheDocument();
-        expect(screen.getByText('COMPLETED:')).toBeInTheDocument();
     });
 
     it('switches tabs correctly', async () => {

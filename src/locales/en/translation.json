@@ -15,5 +15,83 @@
   "common": {
     "submit": "Submit",
     "submitting": "Submitting..."
+  },
+  "dashboard": {
+    "greeting": "Hi, {{firstName}}!",
+    "logout": "Logout",
+    "tabs": {
+      "notifications": "Notifications",
+      "forms": "Forms"
+    },
+    "notifications": {
+      "noNotifications": "No new notifications at this time. System alerts will appear here."
+    },
+    "forms": {
+      "todo": "TO-DO:",
+      "todoList": {
+        "dailyStatusForm": "Daily Status Form",
+        "dueToday": "Due: Today 9:00 AM",
+        "dueTodayLate": "Due: Today 9:00 AM (Late)",
+        "lateLabel": "LATE",
+        "allCompleted": "✅ You've completed all your forms. Great job!"
+      },
+      "submittedForms": "SUBMITTED FORMS:",
+      "formCard": {
+        "status": "Status:",
+        "active": "Active",
+        "absent": "Absent",
+        "load": "Load:",
+        "loadUnit": "kg",
+        "mileage": "Mileage:",
+        "mileageUnit": "km",
+        "viewButton": "View",
+        "editButton": "Edit"
+      },
+      "noSubmittedForms": "No submitted forms found. Your completed forms will appear here."
+    }
+  },
+  "dialog": {
+    "dailyStatusForm": {
+      "title": "Daily Status Form",
+      "date": "Date",
+      "time": "Time",
+      "vehicleStatistics": {
+        "title": "🚚 Vehicle Statistics",
+        "load": "Load (kg)",
+        "loadError": "Please enter a valid load",
+        "mileage": "Mileage (km)",
+        "mileageError": "Please enter a valid mileage"
+      },
+      "deliveryAreas": {
+        "title": "📍 Delivery Areas Covered",
+        "addDeliveryArea": "Add delivery area",
+        "placeholder": "Type and press Enter to add delivery area",
+        "addButton": "Add"
+      },
+      "driverStatus": {
+        "title": "🚦 Driver Status",
+        "active": "Active",
+        "absent": "Absent"
+      },
+      "absenceReason": {
+        "title": "Reason for Absence",
+        "maintenance": "Maintenance",
+        "sickness": "Sickness",
+        "other": "Other",
+        "pleaseSpecify": "Please specify",
+        "reasonRequired": "Please select a reason for absence",
+        "otherReasonRequired": "Please specify the reason"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "notifications": {
+        "success": "Daily status form submitted successfully",
+        "loginError": "You are not logged in. Please log in to submit the form.",
+        "submitError": "Failed to submit form. Please try again."
+      }
+    }
   }
 }
