@@ -14,7 +14,10 @@
   },
   "common": {
     "submit": "Submit",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save"
   },
   "dashboard": {
     "greeting": "Hi, {{firstName}}!",

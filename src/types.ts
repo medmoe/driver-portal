@@ -2,12 +2,12 @@
 export interface FormData {
     date: string;
     time: string;
-    load: string;
-    mileage: string;
     deliveryAreas: string[];
     status: string;
-    absenceReason: string;
+    absence_type: AbsenceType;
     otherReason: string;
+    load: string;
+    mileage: string;
     driver?: string;
     id?: string;
 }
@@ -18,3 +18,5 @@ export interface FormListResponse {
     previous?: string | null;
     results: FormData[];
 }
+
+export type AbsenceType = 'MAINTENANCE' | 'SICKNESS' | 'OTHER';

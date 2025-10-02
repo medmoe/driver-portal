@@ -26,7 +26,7 @@ import type {FormListResponse} from "../../types";
 import DailyStatusFormDialog from "../dialogs/DailyStatusFormDialog.tsx";
 import {format} from 'date-fns';
 import DailyFormsTodoList from "../common/DailyFormsTodoList.tsx";
-import LanguageSwitcher from "../common/LanguageSwitcher.tsx";
+import Header from "../common/Header.tsx";
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -83,7 +83,6 @@ const Dashboard: React.FC = () => {
                 const options = {headers: {'Content-Type': 'application/json'}, withCredentials: true};
                 const response = await axios.get(`${API}drivers/starting-shift/?page=${page}`, options);
                 setFormListResponse(response.data);
-                console.log(response.data);
             } catch (error) {
                 console.error('Error fetching submitted forms:', error);
             } finally {
@@ -133,22 +132,7 @@ const Dashboard: React.FC = () => {
                     flexDirection: 'column'
                 }}
             >
-                {/* Header with greeting and logout button */}
-                <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
-                    <Typography variant="h5">
-                        {t('dashboard.greeting', {firstName: auth.user?.firstName})}
-                    </Typography>
-                    <LanguageSwitcher/>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleLogout}
-                        size="small"
-                    >
-                        {t('dashboard.logout')}
-                    </Button>
-
-                </Box>
+                <Header onLogout={handleLogout} userName={auth.user?.firstName}/>
 
                 <Divider sx={{mb: 2}}/>
 
