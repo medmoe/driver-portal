@@ -14,7 +14,10 @@
   },
   "common": {
     "submit": "إرسال",
-    "submitting": "جاري الإرسال..."
+    "submitting": "جاري الإرسال...",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "save": "حفظ"
   },
   "dashboard": {
     "greeting": "مرحباً، {{firstName}}!",

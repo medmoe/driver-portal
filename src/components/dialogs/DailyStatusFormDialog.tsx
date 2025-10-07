@@ -20,7 +20,7 @@ import axios from "axios";
 import {API} from "../../constants.ts";
 import {format} from 'date-fns';
 import NotificationBar from "../common/NotificationBar.tsx";
-import {type FormData, type FormListResponse} from "../../types.ts";
+import {type AbsenceType, type FormData, type FormListResponse} from "../../types.ts";
 import {useTranslation} from 'react-i18next';
 
 interface DailyStatusFormDialogProps {
@@ -43,6 +43,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
     const {t} = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const [deliveryArea, setDeliveryArea] = useState<string>('');
+    const [readOnly, setReadOnly] = useState<boolean>(false);
     const [snackBar, setSnackBar] = useState<{
         open: boolean;
         severity: "success" | "error";
@@ -57,18 +58,18 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
     const [formData, setFormData] = useState<FormData>({
         date: selectedDate,
         time: format(new Date(), 'HH:mm:ss'),
-        deliveryAreas: [],
-        status: "true",
-        absenceReason: 'Maintenance',
+        delivery_areas: [],
+        status: true, // false: absent, ture: present
+        absence_type: "MAINTENANCE",
         otherReason: '',
         load: '',
-        mileage: ''
+        mileage: '',
     });
 
     // Form validation
     const [errors, setErrors] = useState<{
-        deliveryAreas?: string;
-        absenceReason?: string;
+        delivery_areas?: string;
+        absence_type?: string;
         otherReason?: string;
         load?: string;
         mileage?: string;
@@ -94,12 +95,12 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                         setFormData({
                             date: selectedDate,
                             time: format(now, 'HH:mm:ss'),
-                            deliveryAreas: [],
-                            status: "true",
-                            absenceReason: 'Maintenance',
+                            delivery_areas: [],
+                            status: true,
+                            absence_type: "MAINTENANCE",
                             otherReason: '',
                             load: '',
-                            mileage: ''
+                            mileage: '',
                         });
                     }
                 } catch (error) {
@@ -128,21 +129,23 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
     // Handle form validation
     const validateForm = useCallback(() => {
         const newErrors: {
-            deliveryAreas?: string;
-            absenceReason?: string;
+            delivery_areas?: string;
+            absence_type?: string;
             otherReason?: string;
             load?: string;
             mileage?: string;
         } = {};
 
-        if (formData.status === "false") {
-            if (!formData.absenceReason) {
-                newErrors.absenceReason = t('dialog.dailyStatusForm.absenceReason.reasonRequired');
+        if (!formData.status) {
+            if (!formData.absence_type) {
+                newErrors.absence_type = t('dialog.dailyStatusForm.absenceReason.reasonRequired');
             }
 
-            if (formData.absenceReason === 'Other' && !formData.otherReason.trim()) {
+            if (formData.absence_type === 'OTHER' && !formData.otherReason.trim()) {
                 newErrors.otherReason = t('dialog.dailyStatusForm.absenceReason.otherReasonRequired');
             }
+            setErrors(newErrors);
+            return Object.keys(newErrors).length === 0;
         }
         if (!formData.load || !/^\d+$/.test(formData.load)) {
             newErrors.load = t('dialog.dailyStatusForm.vehicleStatistics.loadError');
@@ -169,7 +172,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
             const options = {headers: {'Content-Type': 'application/json'}, withCredentials: true};
             const response = await axios.post(`${API}drivers/starting-shift/`, formData, options);
             const {count, results, ...rest} = formListResponse;
-            setFormListResponse({...rest, count: `${+count + 1}`, results: [...results, response.data]});
+            setFormListResponse({...rest, count: `${+count + 1}`, results: [response.data, ...results]});
             localStorage.removeItem('dailyStatusFormDraft');
             setSnackBar({open: true, severity: "success", message: t('dialog.dailyStatusForm.notifications.success')});
 
@@ -196,18 +199,24 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
     // Handle radio button changes for driver status
     const handleDriverStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isAbsent = e.target.value === 'false';
+
         setFormData(prev => ({
             ...prev,
-            status: e.target.value
+            status: isAbsent,
+            load: isAbsent ? "" : prev.load,
+            mileage: isAbsent ? "" : prev.mileage,
         }));
+        setReadOnly(isAbsent);
     };
 
     // Handle dropdown changes for absence reason
     const handleAbsenceReasonChange = (e: SelectChangeEvent) => {
+        const value = e.target.value as AbsenceType;
         setFormData(prev => ({
             ...prev,
-            absenceReason: e.target.value,
-            otherReason: e.target.value !== 'Other' ? '' : prev.otherReason
+            absence_type: value,
+            otherReason: value !== 'OTHER' ? '' : prev.otherReason
         }));
     };
 
@@ -218,7 +227,6 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
             otherReason: e.target.value
         }));
     };
-
     return (
         <Dialog
             open={open}
@@ -259,7 +267,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                         <FormLabel component="legend">{t('dialog.dailyStatusForm.vehicleStatistics.title')}</FormLabel>
                         <Box sx={{display: 'flex', gap: 2, mt: 1}}>
                             <TextField
-                                required
+                                required={!readOnly}
                                 fullWidth
                                 label={t('dialog.dailyStatusForm.vehicleStatistics.load')}
                                 type="number"
@@ -267,19 +275,20 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                     input: {
                                         inputProps: {
                                             min: 0
-                                        }
+                                        },
+                                        readOnly: readOnly
                                     }
                                 }}
-                                value={formData.load || ''}
+                                value={formData.load}
                                 onChange={(e) => setFormData(prev => ({
                                     ...prev,
                                     load: e.target.value
                                 }))}
-                                error={!!errors.load}
-                                helperText={errors.load}
+                                error={!readOnly && !!errors.load}
+                                helperText={!readOnly ? errors.load : undefined}
                             />
                             <TextField
-                                required
+                                required={!readOnly}
                                 fullWidth
                                 label={t('dialog.dailyStatusForm.vehicleStatistics.mileage')}
                                 type="number"
@@ -287,16 +296,17 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                     input: {
                                         inputProps: {
                                             min: 0
-                                        }
+                                        },
+                                        readOnly: readOnly
                                     }
                                 }}
-                                value={formData.mileage || ''}
+                                value={formData.mileage}
                                 onChange={(e) => setFormData(prev => ({
                                     ...prev,
                                     mileage: e.target.value
                                 }))}
-                                error={!!errors.mileage}
-                                helperText={errors.mileage}
+                                error={!readOnly && !!errors.mileage}
+                                helperText={!readOnly ? errors.mileage : undefined}
                             />
                         </Box>
                     </FormControl>
@@ -305,7 +315,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     <FormControl
                         component="fieldset"
                         sx={{mb: 3, width: '100%'}}
-                        error={!!errors.deliveryAreas}
+                        error={!!errors.delivery_areas}
                     >
                         <FormLabel component="legend" sx={{mb: 2}}>{t('dialog.dailyStatusForm.deliveryAreas.title')}</FormLabel>
                         <Box>
@@ -322,41 +332,47 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                             if (deliveryArea.trim()) {
                                                 setFormData(prevState => ({
                                                     ...prevState,
-                                                    deliveryAreas: [...prevState.deliveryAreas, deliveryArea.trim()]
+                                                    delivery_areas: [...prevState.delivery_areas, deliveryArea.trim()]
                                                 }));
                                                 setDeliveryArea('');
                                             }
                                         }
                                     }}
-                                    error={!!errors.deliveryAreas}
-                                    helperText={errors.deliveryAreas}
-                                    required
+                                    error={!readOnly && !!errors.delivery_areas}
+                                    helperText={!readOnly ? errors.delivery_areas : undefined}
+                                    required={!readOnly}
+                                    slotProps={{
+                                        input: {
+                                            readOnly: readOnly
+                                        }
+                                    }}
                                 />
                                 <Button
                                     variant={'contained'}
-                                    sx={{ml: 1, minWidth: '40px', height: '40px'}}
+                                    sx={{ml: 1, minWidth: '40px', height: '40px', visibility: readOnly ? 'hidden' : 'visible'}}
                                     onClick={() => {
                                         if (deliveryArea.trim()) {
                                             setFormData(prevState => ({
                                                 ...prevState,
-                                                deliveryAreas: [...prevState.deliveryAreas, deliveryArea.trim()]
+                                                delivery_areas: [...prevState.delivery_areas, deliveryArea.trim()]
                                             }));
                                             setDeliveryArea('');
                                         }
                                     }}
+
                                 >
                                     {t('dialog.dailyStatusForm.deliveryAreas.addButton')}
                                 </Button>
                             </Box>
                             <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}>
-                                {formData.deliveryAreas.map((area, idx) => (
+                                {formData.delivery_areas.map((area, idx) => (
                                     <Chip
                                         key={idx}
                                         label={area}
                                         onDelete={() => {
                                             setFormData(prevState => ({
                                                 ...prevState,
-                                                deliveryAreas: prevState.deliveryAreas.filter(a => a !== area)
+                                                delivery_areas: prevState.delivery_areas.filter(a => a !== area)
                                             }));
                                         }}
                                         color={'primary'}
@@ -388,30 +404,30 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     </FormControl>
 
                     {/* Absence Reason Section - Only shown if driver is absent */}
-                    {formData.status === "false" && (
+                    {!formData.status && (
                         <Box sx={{mb: 3}}>
                             <FormControl
                                 fullWidth
-                                error={!!errors.absenceReason}
-                                sx={{mb: errors.absenceReason ? 0 : 2}}
+                                error={!!errors.absence_type}
+                                sx={{mb: errors.absence_type ? 0 : 2}}
                             >
                                 <FormLabel component="legend">{t('dialog.dailyStatusForm.absenceReason.title')}</FormLabel>
                                 <Select
-                                    value={formData.absenceReason}
+                                    value={formData.absence_type}
                                     onChange={handleAbsenceReasonChange}
                                     displayEmpty
                                 >
-                                    <MenuItem value="Maintenance">{t('dialog.dailyStatusForm.absenceReason.maintenance')}</MenuItem>
-                                    <MenuItem value="Sickness">{t('dialog.dailyStatusForm.absenceReason.sickness')}</MenuItem>
-                                    <MenuItem value="Other">{t('dialog.dailyStatusForm.absenceReason.other')}</MenuItem>
+                                    <MenuItem value="MAINTENANCE">{t('dialog.dailyStatusForm.absenceReason.maintenance')}</MenuItem>
+                                    <MenuItem value="SICKNESS">{t('dialog.dailyStatusForm.absenceReason.sickness')}</MenuItem>
+                                    <MenuItem value="OTHER">{t('dialog.dailyStatusForm.absenceReason.other')}</MenuItem>
                                 </Select>
-                                {errors.absenceReason && (
-                                    <FormHelperText>{errors.absenceReason}</FormHelperText>
+                                {errors.absence_type && (
+                                    <FormHelperText>{errors.absence_type}</FormHelperText>
                                 )}
                             </FormControl>
 
                             {/* Other Reason Text Field - Only shown if "Other" is selected */}
-                            {formData.absenceReason === 'Other' && (
+                            {formData.absence_type === 'OTHER' && (
                                 <TextField
                                     fullWidth
                                     label={t('dialog.dailyStatusForm.absenceReason.pleaseSpecify')}

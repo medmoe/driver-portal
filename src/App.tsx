@@ -11,6 +11,8 @@ import {useEffect} from 'react';
 import './App.css';
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Dashboard from "./components/dashboard/Dashboard";
+import ViewDailyStatus from "./components/daily-status/ViewDailyStatus";
+import EditDailyStatus from "./components/daily-status/EditDailyStatus";
 
 // Create rtl cache
 const cacheRtl = createCache({
@@ -87,6 +89,8 @@ function App() {
                             <Route path="/" element={<DriverAuth/>}/>
                             <Route element={<ProtectedRoute/>}>
                                 <Route path="/dashboard" element={<Dashboard/>}/>
+                                <Route path="/daily-status/view/:id" element={<ViewDailyStatus/>}/>
+                                <Route path="/daily-status/edit/:id" element={<EditDailyStatus/>}/>
                             </Route>
                             <Route path="*" element={<Navigate to="/" replace/>}/>
                         </Routes>
