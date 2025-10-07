@@ -100,7 +100,7 @@ const ViewDailyStatus: React.FC = () => {
 
                 <Typography variant="subtitle1" sx={{mb: 1}}>{t('dialog.dailyStatusForm.deliveryAreas.title')}</Typography>
                 <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2}}>
-                    {form.deliveryAreas?.length ? form.deliveryAreas.map((a, i) => (
+                    {form.delivery_areas?.length ? form.delivery_areas.map((a, i) => (
                         <Chip key={`${a}-${i}`} label={a} color="primary" variant="outlined"/>
                     )) : (
                         <Typography color="text.secondary">-</Typography>

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
@@ -34,19 +34,21 @@ const EditDailyStatus: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [deliveryAreaInput, setDeliveryAreaInput] = useState('');
     const [formData, setFormData] = useState<FormData | null>(null);
+    const originalFormDataRef = useRef<FormData | null>(null);
     const [errors, setErrors] = useState<{ load?: string; mileage?: string; absence_type?: string; otherReason?: string; deliveryAreas?: string }>({});
+
 
     useEffect(() => {
         const fetchForm = async () => {
+            setLoading(true);
             try {
                 const options = {headers: {'Content-Type': 'application/json'}, withCredentials: true};
                 const response = await axios.get(`${API}drivers/starting-shift/${id}/`, options);
                 // Normalize booleans to string as used in dialog
                 const f = response.data as FormData;
-                setFormData({
-                    ...f,
-                    status: (f as any).status === true || (f as any).status === 'true' ? 'true' : 'false',
-                });
+                setFormData(f);
+                // Store the original data for potential restoration
+                originalFormDataRef.current = f;
             } catch (e) {
                 navigate('/dashboard');
             } finally {
@@ -59,11 +61,12 @@ const EditDailyStatus: React.FC = () => {
     const validate = useCallback(() => {
         if (!formData) return false;
         const e: typeof errors = {};
-        if (formData.status === 'true') {
+        if (formData.status) {
             if (!formData.load || !/^\d+$/.test(formData.load)) e.load = t('dialog.dailyStatusForm.vehicleStatistics.loadError');
             if (!formData.mileage || !/^\d+$/.test(formData.mileage)) e.mileage = t('dialog.dailyStatusForm.vehicleStatistics.mileageError');
-            if (!formData.deliveryAreas || formData.deliveryAreas.length === 0) e.deliveryAreas = t('dialog.dailyStatusForm.deliveryAreas.placeholder');
+            if (!formData.delivery_areas || formData.delivery_areas.length === 0) e.deliveryAreas = t('dialog.dailyStatusForm.deliveryAreas.placeholder');
         } else {
+
             if (!formData.absence_type) e.absence_type = t('dialog.dailyStatusForm.absenceReason.reasonRequired');
             if (formData.absence_type === 'OTHER' && !formData.otherReason) e.otherReason = t('dialog.dailyStatusForm.absenceReason.otherReasonRequired');
         }
@@ -76,12 +79,8 @@ const EditDailyStatus: React.FC = () => {
         if (!validate()) return;
         setSaving(true);
         try {
-            const payload = {
-                ...formData,
-                status: formData.status === 'true',
-            } as any;
             const options = {headers: {'Content-Type': 'application/json'}, withCredentials: true};
-            await axios.patch(`${API}drivers/starting-shift/${id}/`, payload, options);
+            await axios.put(`${API}drivers/starting-shift/${id}/`, formData, options);
             navigate(`/daily-status/view/${id}`);
         } catch (e) {
             // Keep user on page, maybe show error later
@@ -100,7 +99,7 @@ const EditDailyStatus: React.FC = () => {
         );
     }
 
-    const readOnly = formData.status === 'false';
+    const readOnly = !formData.status;
     const handleLogout = async () => {
         navigate('/')
     }
@@ -124,8 +123,37 @@ const EditDailyStatus: React.FC = () => {
                     <RadioGroup
                         value={formData.status}
                         onChange={(e) => {
-                            const v = e.target.value;
-                            setFormData((prev) => prev ? {...prev, status: v} : prev);
+                            const newStatus = e.target.value;
+                            const prevStatus = formData.status;
+
+                            setFormData((prev) => {
+                                if (!prev) return prev;
+
+                                if (newStatus === 'false') {
+                                    return {
+                                        ...prev,
+                                        status: false,
+                                        load: '',
+                                        mileage: '',
+                                        delivery_areas: []
+                                    };
+                                } else if (!prevStatus && newStatus === 'true' && originalFormDataRef.current) {
+                                    // Switching back to active status - restore original values if available
+                                    return {
+                                        ...prev,
+                                        status: true,
+                                        load: originalFormDataRef.current.load,
+                                        mileage: originalFormDataRef.current.mileage,
+                                        delivery_areas: originalFormDataRef.current.delivery_areas
+                                    }
+                                } else {
+                                    // Just update status in other cases
+                                    return {
+                                        ...prev,
+                                        status: newStatus === 'true',
+                                    }
+                                }
+                            })
                         }}
                     >
                         <FormControlLabel value="true" control={<Radio/>} label={t('dialog.dailyStatusForm.driverStatus.active')}/>
@@ -177,7 +205,7 @@ const EditDailyStatus: React.FC = () => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
                                         if (deliveryAreaInput.trim()) {
-                                            setFormData((p) => (p ? {...p, deliveryAreas: [...(p.deliveryAreas || []), deliveryAreaInput.trim()]} : p));
+                                            setFormData((p) => (p ? {...p, delivery_areas: [...(p.delivery_areas || []), deliveryAreaInput.trim()]} : p));
                                             setDeliveryAreaInput('');
                                         }
                                     }
@@ -192,7 +220,7 @@ const EditDailyStatus: React.FC = () => {
                                 sx={{ml: 1, minWidth: '40px', height: '40px', visibility: readOnly ? 'hidden' : 'visible'}}
                                 onClick={() => {
                                     if (deliveryAreaInput.trim()) {
-                                        setFormData((p) => (p ? {...p, deliveryAreas: [...(p.deliveryAreas || []), deliveryAreaInput.trim()]} : p));
+                                        setFormData((p) => (p ? {...p, delivery_areas: [...(p.delivery_areas || []), deliveryAreaInput.trim()]} : p));
                                         setDeliveryAreaInput('');
                                     }
                                 }}
@@ -201,11 +229,11 @@ const EditDailyStatus: React.FC = () => {
                             </Button>
                         </Box>
                         <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}>
-                            {formData.deliveryAreas?.map((area, i) => (
+                            {formData.delivery_areas?.map((area, i) => (
                                 <Chip
                                     key={`${area}-${i}`}
                                     label={area}
-                                    onDelete={readOnly ? undefined : () => setFormData((p) => (p ? {...p, deliveryAreas: (p.deliveryAreas || []).filter((a) => a !== area)} : p))}
+                                    onDelete={readOnly ? undefined : () => setFormData((p) => (p ? {...p, delivery_areas: (p.delivery_areas || []).filter((a) => a !== area)} : p))}
                                     color="primary"
                                     variant="outlined"
                                 />
@@ -215,7 +243,7 @@ const EditDailyStatus: React.FC = () => {
                 </FormControl>
 
                 {/* Absence Reason */}
-                {formData.status === 'false' && (
+                {!formData.status && (
                     <Box sx={{mb: 3}}>
                         <FormControl component="fieldset" fullWidth sx={{mb: 2}}>
                             <FormLabel component="legend">{t('dialog.dailyStatusForm.absenceReason.title')}</FormLabel>

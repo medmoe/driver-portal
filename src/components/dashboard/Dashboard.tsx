@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -12,9 +11,6 @@ import CardContent from '@mui/material/CardContent';
 import Pagination from '@mui/material/Pagination';
 import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
-import CardActions from '@mui/material/CardActions';
-import Edit from '@mui/icons-material/Edit';
-import Visibility from '@mui/icons-material/Visibility';
 import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import useAuthStore from '../../stores/useAuthStore';
@@ -24,9 +20,9 @@ import axios from "axios";
 import {API} from "../../constants.ts";
 import type {FormListResponse} from "../../types";
 import DailyStatusFormDialog from "../dialogs/DailyStatusFormDialog.tsx";
-import {format} from 'date-fns';
 import DailyFormsTodoList from "../common/DailyFormsTodoList.tsx";
 import Header from "../common/Header.tsx";
+import StatusCard from "../common/StatusCard.tsx";
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -83,7 +79,10 @@ const Dashboard: React.FC = () => {
                 const options = {headers: {'Content-Type': 'application/json'}, withCredentials: true};
                 const response = await axios.get(`${API}drivers/starting-shift/?page=${page}`, options);
                 setFormListResponse(response.data);
-            } catch (error) {
+            } catch (error: any) {
+                if (error.response.status === 401) {
+                    navigate('/');
+                }
                 console.error('Error fetching submitted forms:', error);
             } finally {
                 setLoading(false);
@@ -197,60 +196,7 @@ const Dashboard: React.FC = () => {
                     ) : formListResponse.results.length > 0 ? (
                         <>
                             <Grid container spacing={2}>
-                                {formListResponse.results.map((form) => (
-                                    <Grid
-                                        key={form.id}
-                                        sx={{
-                                            width: {
-                                                xs: '100%',    // Full width on extra-small screens
-                                                sm: '50%',     // Half width on small screens
-                                                md: '33.33%'   // One-third width on medium screens and up
-                                            }
-                                        }}
-                                    >
-                                        <Card variant="outlined" sx={{height: '100%'}}>
-                                            <CardContent>
-                                                <Typography variant="h6" component="div" gutterBottom>
-                                                    {format(new Date(form.date), 'MMM d, yyyy')}
-                                                </Typography>
-                                                <Typography color="text.secondary" sx={{mb: 1.5}}>
-                                                    {form.time}
-                                                </Typography>
-                                                <Divider sx={{my: 1}}/>
-                                                <Box sx={{mt: 1}}>
-                                                    <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
-                                                        <span>{t('dashboard.forms.formCard.status')}</span>
-                                                        <span>{form.status ? t('dashboard.forms.formCard.active') : t('dashboard.forms.formCard.absent')}</span>
-                                                    </Typography>
-                                                    <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
-                                                        <span>{t('dashboard.forms.formCard.load')}</span>
-                                                        <span>{Number(form.load).toLocaleString()} {t('dashboard.forms.formCard.loadUnit')}</span>
-                                                    </Typography>
-                                                    <Typography variant="body2" component="div" display="flex" justifyContent="space-between">
-                                                        <span>{t('dashboard.forms.formCard.mileage')}</span>
-                                                        <span>{Number(form.mileage).toLocaleString()} {t('dashboard.forms.formCard.mileageUnit')}</span>
-                                                    </Typography>
-                                                </Box>
-                                            </CardContent>
-                                            <CardActions>
-                                                <Button
-                                                    size="small"
-                                                    startIcon={<Visibility/>}
-                                                    onClick={() => navigate(`/daily-status/view/${form.id}`)}
-                                                >
-                                                    {t('dashboard.forms.formCard.viewButton')}
-                                                </Button>
-                                                <Button
-                                                    size="small"
-                                                    startIcon={<Edit/>}
-                                                    onClick={() => navigate(`/daily-status/edit/${form.id}`)}
-                                                >
-                                                    {t('dashboard.forms.formCard.editButton')}
-                                                </Button>
-                                            </CardActions>
-                                        </Card>
-                                    </Grid>
-                                ))}
+                                {formListResponse.results.map((form) => <StatusCard key={form.id} form={form}/>)}
                             </Grid>
 
                             <Box sx={{display: 'flex', justifyContent: 'center', mt: 3}}>

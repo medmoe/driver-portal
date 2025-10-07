@@ -58,8 +58,8 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
     const [formData, setFormData] = useState<FormData>({
         date: selectedDate,
         time: format(new Date(), 'HH:mm:ss'),
-        deliveryAreas: [],
-        status: "true", // false: absent, ture: present
+        delivery_areas: [],
+        status: true, // false: absent, ture: present
         absence_type: "MAINTENANCE",
         otherReason: '',
         load: '',
@@ -68,7 +68,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
     // Form validation
     const [errors, setErrors] = useState<{
-        deliveryAreas?: string;
+        delivery_areas?: string;
         absence_type?: string;
         otherReason?: string;
         load?: string;
@@ -95,8 +95,8 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                         setFormData({
                             date: selectedDate,
                             time: format(now, 'HH:mm:ss'),
-                            deliveryAreas: [],
-                            status: "true",
+                            delivery_areas: [],
+                            status: true,
                             absence_type: "MAINTENANCE",
                             otherReason: '',
                             load: '',
@@ -129,14 +129,14 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
     // Handle form validation
     const validateForm = useCallback(() => {
         const newErrors: {
-            deliveryAreas?: string;
+            delivery_areas?: string;
             absence_type?: string;
             otherReason?: string;
             load?: string;
             mileage?: string;
         } = {};
 
-        if (formData.status === "false") {
+        if (!formData.status) {
             if (!formData.absence_type) {
                 newErrors.absence_type = t('dialog.dailyStatusForm.absenceReason.reasonRequired');
             }
@@ -203,7 +203,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
 
         setFormData(prev => ({
             ...prev,
-            status: e.target.value,
+            status: isAbsent,
             load: isAbsent ? "" : prev.load,
             mileage: isAbsent ? "" : prev.mileage,
         }));
@@ -227,7 +227,6 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
             otherReason: e.target.value
         }));
     };
-
     return (
         <Dialog
             open={open}
@@ -316,7 +315,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     <FormControl
                         component="fieldset"
                         sx={{mb: 3, width: '100%'}}
-                        error={!!errors.deliveryAreas}
+                        error={!!errors.delivery_areas}
                     >
                         <FormLabel component="legend" sx={{mb: 2}}>{t('dialog.dailyStatusForm.deliveryAreas.title')}</FormLabel>
                         <Box>
@@ -333,14 +332,14 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                             if (deliveryArea.trim()) {
                                                 setFormData(prevState => ({
                                                     ...prevState,
-                                                    deliveryAreas: [...prevState.deliveryAreas, deliveryArea.trim()]
+                                                    delivery_areas: [...prevState.delivery_areas, deliveryArea.trim()]
                                                 }));
                                                 setDeliveryArea('');
                                             }
                                         }
                                     }}
-                                    error={!readOnly && !!errors.deliveryAreas}
-                                    helperText={!readOnly ? errors.deliveryAreas : undefined}
+                                    error={!readOnly && !!errors.delivery_areas}
+                                    helperText={!readOnly ? errors.delivery_areas : undefined}
                                     required={!readOnly}
                                     slotProps={{
                                         input: {
@@ -355,7 +354,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                         if (deliveryArea.trim()) {
                                             setFormData(prevState => ({
                                                 ...prevState,
-                                                deliveryAreas: [...prevState.deliveryAreas, deliveryArea.trim()]
+                                                delivery_areas: [...prevState.delivery_areas, deliveryArea.trim()]
                                             }));
                                             setDeliveryArea('');
                                         }
@@ -366,14 +365,14 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                                 </Button>
                             </Box>
                             <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2}}>
-                                {formData.deliveryAreas.map((area, idx) => (
+                                {formData.delivery_areas.map((area, idx) => (
                                     <Chip
                                         key={idx}
                                         label={area}
                                         onDelete={() => {
                                             setFormData(prevState => ({
                                                 ...prevState,
-                                                deliveryAreas: prevState.deliveryAreas.filter(a => a !== area)
+                                                delivery_areas: prevState.delivery_areas.filter(a => a !== area)
                                             }));
                                         }}
                                         color={'primary'}
@@ -405,7 +404,7 @@ const DailyStatusFormDialog: React.FC<DailyStatusFormDialogProps> = ({
                     </FormControl>
 
                     {/* Absence Reason Section - Only shown if driver is absent */}
-                    {formData.status === "false" && (
+                    {!formData.status && (
                         <Box sx={{mb: 3}}>
                             <FormControl
                                 fullWidth

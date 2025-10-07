@@ -2,8 +2,8 @@
 export interface FormData {
     date: string;
     time: string;
-    deliveryAreas: string[];
-    status: string;
+    delivery_areas: string[];
+    status: boolean;
     absence_type: AbsenceType;
     otherReason: string;
     load: string;
